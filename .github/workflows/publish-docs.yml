@@ -36,13 +36,8 @@ jobs:
 
       - name: Clone docs repo
         run: |
-          mkdir pushrepo
+          git clone https://x-access-token:${{ secrets.PAT }}@github.com/ririf4/docs.git pushrepo
           cd pushrepo
-          git init
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git remote add origin https://x-access-token:${{ secrets.PAT }}@github.com/ririf4/docs.git
-          git fetch origin main
           git checkout -b docs-${{ github.event.repository.name }}
 
       - name: Copy docs
