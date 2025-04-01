@@ -39,6 +39,8 @@ jobs:
           git clone https://x-access-token:${{ secrets.PAT }}@github.com/ririf4/docs.git pushrepo
           cd pushrepo
           git checkout -b docs-${{ github.event.repository.name }}
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
 
       - name: Copy docs
         run: |
