@@ -58,6 +58,8 @@ jobs:
           git push -f origin docs-${{ github.event.repository.name }}
 
       - name: Create PR using GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.PAT }}
         run: |
           cd pushrepo
           gh pr create \
