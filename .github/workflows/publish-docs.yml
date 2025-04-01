@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # ← ここで渡しておく！
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout
@@ -21,6 +21,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x ./gradlew
 
       - name: Generate Dokka HTML
         run: ./gradlew dokkaHtml
