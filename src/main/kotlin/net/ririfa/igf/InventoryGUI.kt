@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 
@@ -25,10 +24,19 @@ abstract class InventoryGUI(
     private var listener: GUIListener? = null
     private var title: Component? = null
     private var size: Int? = null
-    private var type: InventoryType? = null
     private var background: Material? = null
     private var shouldCallGlobalListener = false
 
+    /**
+     * Represents the list of buttons to be displayed in this inventory GUI.
+     * Each button corresponds to a slot and can define its own material, name,
+     * custom data, and click behavior.
+     *
+     * This property can only be modified through dedicated methods like `setItems` or `addItem`.
+     * Any direct modification outside of these methods is restricted.
+     *
+     * By default, it is initialized as an empty list.
+     */
     var items: List<Button> = emptyList()
         private set
 
@@ -148,23 +156,9 @@ abstract class InventoryGUI(
      * @throws IllegalStateException If neither `size` nor `type` is set, or if both are set.
      */
     protected fun create() {
-        if (title == null) throw IllegalStateException("Title must be set before creating the inventory.")
+        if (title == null || size == null) throw IllegalStateException("Title must be set before creating the inventory.")
 
-        when {
-            size != null && type != null ->
-                throw IllegalStateException("Cannot set both 'size' and 'type'. Use only one.")
-
-            size == null && type == null ->
-                throw IllegalStateException("Either 'size' or 'type' must be set before creating the inventory.")
-
-            else -> igfInventory = when {
-                size != null -> player.server.createInventory(this, size!!, title!!)
-                type != null -> player.server.createInventory(this, type!!, title!!)
-                else -> throw IllegalStateException("Bro, how did you get here? This shouldn't happen. X")
-            }
-        }
-
-        if (size == null) size = igfInventory!!.size
+        igfInventory = player.server.createInventory(this, size ?: 0, title!!)
     }
 
     /**
@@ -288,17 +282,9 @@ abstract class InventoryGUI(
      * @return The current [InventoryGUI] instance for chaining.
      */
     fun setSize(size: Int): InventoryGUI {
+        if (size % 9 != 0) throw IllegalArgumentException("Size must be a multiple of 9.")
         this.size = size
         return this
-    }
-
-    /**
-     * Sets the size of the inventory GUI using an [InventoryType].
-     * @param size The [InventoryType] representing the size of the inventory.
-     * @return The current [InventoryGUI] instance for chaining.
-     */
-    fun setSize(size: InventoryType) {
-        this.type = size
     }
 
     /**

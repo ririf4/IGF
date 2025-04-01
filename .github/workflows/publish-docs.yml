@@ -1,0 +1,58 @@
+name: Build and PR Dokka to docs repo
+
+on:
+  push:
+    branches: [ '**' ]
+  workflow_dispatch:
+
+jobs:
+  publish-docs:
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # ← ここで渡しておく！
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Generate Dokka HTML
+        run: ./gradlew dokkaHtml
+
+      - name: Clone docs repo
+        run: |
+          mkdir pushrepo
+          cd pushrepo
+          git init
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git remote add origin https://github.com/ririf4/docs.git
+          git fetch origin main
+          git checkout -b docs-${{ github.event.repository.name }}
+
+      - name: Copy docs
+        run: |
+          cp -r build/dokka/html/* ./pushrepo/${{ github.event.repository.name }}/
+
+      - name: Commit and push
+        run: |
+          cd pushrepo
+          git add .
+          git commit -m "docs: update for ${{ github.event.repository.name }}"
+          git push -f origin docs-${{ github.event.repository.name }}
+
+      - name: Create PR using GitHub CLI
+        run: |
+          cd pushrepo
+          gh pr create \
+            --repo ririf4/docs \
+            --base main \
+            --head docs-${{ github.event.repository.name }} \
+            --title "Update docs for ${{ github.event.repository.name }}" \
+            --body "This PR updates the Dokka docs for ${{ github.event.repository.name }}"

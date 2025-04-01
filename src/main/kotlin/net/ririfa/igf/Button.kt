@@ -8,6 +8,12 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.persistence.PersistentDataType
 
+
+/**
+ * Functional interface representing a click event action to be executed when a player interacts.
+ * This interface is designed to encapsulate a callback mechanism for handling click events
+ * associated with a specific player.
+ */
 @FunctionalInterface
 fun interface ClickEvent {
     fun onClick(player: Player)
@@ -92,11 +98,61 @@ data class Button(
     fun toItemStack(): ItemStack = material.toItemStack(name, data)
 }
 
+/**
+ * Sets a click callback for the button. The provided callback will be executed
+ * whenever the button is clicked by a player.
+ *
+ * @param callback A lambda function that takes a [Player] as a parameter. This function
+ * will be called when the button is clicked by the specified player.
+ * @return The modified [Button] instance with the assigned click callback.
+ */
 fun Button.setClick(callback: (Player) -> Unit): Button {
     this.onClick = ClickEvent { player -> callback(player) }
     return this
 }
 
+/**
+ * Adds a click handler to the button without overwriting the existing one.
+ * The new click handler is called after the existing click handler when the button is clicked.
+ *
+ * @param callback A lambda function to be executed when the button is clicked.
+ *                 The function receives the [Player] who clicked as a parameter.
+ * @return The updated [Button] with the new click handler appended.
+ */
+fun Button.appendClick(callback: (Player) -> Unit): Button {
+    val existing = this.onClick
+    this.onClick = ClickEvent { player ->
+        existing?.onClick(player)
+        callback(player)
+    }
+    return this
+}
+
+
+/**
+ * Sets or replaces a single persistent data entry in the button.
+ *
+ * @param key The key to associate the data with.
+ * @param wrapper The DataWrapper containing the value and its type.
+ * @return This Button instance with the updated data.
+ */
+fun Button.setData(key: NamespacedKey, wrapper: DataWrapper<*, *>): Button {
+    val newMap = data.toMutableMap()
+    newMap[key] = wrapper
+    return this.copy(data = newMap)
+}
+
+/**
+ * Adds multiple persistent data entries to the button.
+ *
+ * @param entries The entries to add as key-wrapper pairs.
+ * @return This Button instance with the updated data.
+ */
+fun Button.addData(vararg entries: Pair<NamespacedKey, DataWrapper<*, *>>): Button {
+    val newMap = data.toMutableMap()
+    entries.forEach { (key, wrapper) -> newMap[key] = wrapper }
+    return this.copy(data = newMap)
+}
 
 /**
  * Converts the material into an ItemStack, optionally setting the display name and persistent data.

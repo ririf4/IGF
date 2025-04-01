@@ -1,21 +1,15 @@
-import cl.franciscosolis.sonatypecentralupload.SonatypeCentralUploadTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.io.FileInputStream
-import java.util.*
 
 plugins {
     kotlin("jvm") version "2.1.10"
     id("cl.franciscosolis.sonatype-central-upload") version "1.0.3"
+    id("org.jetbrains.dokka") version "2.0.0"
     `maven-publish`
 }
 
 group = "net.ririfa"
-version = "1.1.1"
-
-val localProperties = Properties().apply {
-    load(FileInputStream(rootProject.file("local.properties")))
-}
+version = "1.2.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -27,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT")
 }
 
 java {
@@ -42,6 +36,10 @@ kotlin {
     jvmToolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
+}
+
+tasks.dokkaHtml {
+    outputDirectory.set(layout.buildDirectory.asFile.get().resolve("dokka/html"))
 }
 
 tasks.withType<KotlinCompile> {
@@ -95,24 +93,16 @@ publishing {
             }
         }
     }
-}
+    repositories {
+        maven {
+            val releasesRepoUrl = uri("https://repo.ririfa.net/maven2-rel/")
+            val snapshotsRepoUrl = uri("https://repo.ririfa.net/maven2-snap/")
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
 
-tasks.named<SonatypeCentralUploadTask>("sonatypeCentralUpload") {
-    dependsOn("clean", "jar", "sourcesJar", "javadocJar", "generatePomFileForMavenPublication")
-
-    username = localProperties.getProperty("cu")
-    password = localProperties.getProperty("cp")
-
-    archives = files(
-        tasks.named("jar"),
-        tasks.named("sourcesJar"),
-        tasks.named("javadocJar"),
-    )
-
-    pom = file(
-        tasks.named("generatePomFileForMavenPublication").get().outputs.files.single()
-    )
-
-    signingKey = localProperties.getProperty("signing.key")
-    signingKeyPassphrase = localProperties.getProperty("signing.passphrase")
+            credentials {
+                username = findProperty("nxUN").toString()
+                password = findProperty("nxPW").toString()
+            }
+        }
+    }
 }

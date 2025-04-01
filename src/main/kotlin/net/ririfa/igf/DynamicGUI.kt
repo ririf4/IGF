@@ -1,7 +1,7 @@
 package net.ririfa.igf
 
 import org.bukkit.entity.Player
-import java.lang.reflect.ParameterizedType
+import kotlin.reflect.KClass
 
 /**
  * A generic dynamic GUI framework for creating inventories with an adaptive state-based design.
@@ -21,13 +21,16 @@ import java.lang.reflect.ParameterizedType
  * - Supports dynamic updates of inventory content based on the current state.
  */
 class DynamicGUI<T : Enum<T>>(
+	private val enumClass: Class<T>,
 	player: Player
 ): InventoryGUI(player) {
 	private var currentState: T? = null
 	private var buttonMappings: Map<T, List<Button>> = emptyMap()
 
+	constructor(enumKClass: KClass<T>, player: Player): this(enumKClass.java, player)
+
 	override fun build(): InventoryGUI {
-		if (currentState == null && SinglePage::class.java.isAssignableFrom(getTypeClass())) {
+		if (currentState == null && enumClass.isAssignableFrom(SinglePage::class.java)) {
 			@Suppress("UNCHECKED_CAST")
 			currentState = SinglePage.PAGE as T
 		}
@@ -109,13 +112,5 @@ class DynamicGUI<T : Enum<T>>(
 		}
 
 		player.updateInventory()
-	}
-
-	private fun getTypeClass(): Class<T> {
-		@Suppress("UNCHECKED_CAST")
-		return (this::class.java.genericSuperclass as? ParameterizedType)
-			?.actualTypeArguments
-			?.get(0) as? Class<T>
-			?: throw IllegalStateException("Failed to determine generic type")
 	}
 }
