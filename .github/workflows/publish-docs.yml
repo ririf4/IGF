@@ -26,8 +26,8 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Generate Dokka HTML
-        run: ./gradlew dokkaHtml
-
+        run: ./gradlew dokkaGenerateModuleHtml
+          
       - name: Clone docs repo
         run: |
           mkdir pushrepo
