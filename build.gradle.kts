@@ -38,8 +38,8 @@ kotlin {
     }
 }
 
-tasks.dokkaHtml {
-    outputDirectory.set(layout.buildDirectory.asFile.get().resolve("dokka/html"))
+tasks.dokkaGenerateModuleHtml {
+    outputDirectory.set(layout.buildDirectory.dir("dokka/html"))
 }
 
 tasks.withType<KotlinCompile> {

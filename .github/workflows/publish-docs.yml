@@ -27,7 +27,13 @@ jobs:
 
       - name: Generate Dokka HTML
         run: ./gradlew dokkaGenerateModuleHtml
-          
+
+      - name: Debug output path
+        run: |
+          echo "Listing all possible Dokka output dirs..."
+          ls -la build/
+          ls -la build/dokka/      
+
       - name: Clone docs repo
         run: |
           mkdir pushrepo
