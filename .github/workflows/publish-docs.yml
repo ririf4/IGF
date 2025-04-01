@@ -41,7 +41,7 @@ jobs:
           git init
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git remote add origin https://github.com/ririf4/docs.git
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/ririf4/docs.git
           git fetch origin main
           git checkout -b docs-${{ github.event.repository.name }}
 
