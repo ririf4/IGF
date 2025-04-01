@@ -26,26 +26,26 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Generate Dokka HTML
-        run: ./gradlew dokkaGenerateModuleHtml
+        run: ./gradlew dokkaGenerate
 
       - name: Debug output path
         run: |
           echo "Listing all possible Dokka output dirs..."
           ls -la build/
-          ls -la build/dokka/      
+          ls -la build/dokka/
 
       - name: Clone docs repo
         run: |
           git clone https://x-access-token:${{ secrets.PAT }}@github.com/ririf4/docs.git pushrepo
           cd pushrepo
-          git checkout -b docs-${{ github.event.repository.name }}
+          git checkout -B docs-${{ github.event.repository.name }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
 
       - name: Copy docs
         run: |
           mkdir -p ./pushrepo/${{ github.event.repository.name }}
-          cp -r build/dokka/html/* ./pushrepo/${{ github.event.repository.name }}/
+          cp -r build/dokka/html/${{ github.event.repository.name }}/* ./pushrepo/${{ github.event.repository.name }}/
 
       - name: Commit and push
         run: |

@@ -38,10 +38,6 @@ kotlin {
     }
 }
 
-tasks.dokkaGenerateModuleHtml {
-    outputDirectory.set(layout.buildDirectory.dir("dokka/html"))
-}
-
 tasks.withType<KotlinCompile> {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
