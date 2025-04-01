@@ -47,6 +47,7 @@ jobs:
 
       - name: Copy docs
         run: |
+          mkdir -p ./pushrepo/${{ github.event.repository.name }}
           cp -r build/dokka/html/* ./pushrepo/${{ github.event.repository.name }}/
 
       - name: Commit and push
