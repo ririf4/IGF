@@ -64,7 +64,7 @@ object IGF : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onInventoryClick(event: InventoryClickEvent) {
         val holder = event.clickedInventory?.holder as? InventoryGUI ?: return
-        val button = holder.items.find { it.slot == event.slot } ?: return
+        val button = holder.items.find { button -> button.slot == event.slot } ?: return
 
         event.isCancelled = true
 

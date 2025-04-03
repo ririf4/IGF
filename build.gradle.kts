@@ -3,13 +3,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "2.1.10"
-    id("cl.franciscosolis.sonatype-central-upload") version "1.0.3"
     id("org.jetbrains.dokka") version "2.0.0"
     `maven-publish`
 }
 
 group = "net.ririfa"
-version = "1.2.0-SNAPSHOT"
+version = "1.2.0"
 
 repositories {
     mavenCentral()
@@ -67,7 +66,7 @@ publishing {
             pom {
                 name.set("IGF")
                 description.set("Minecraft Paper Plugin makes it easy to build InventoryGUI PAI")
-                url.set("https://github.com/SwiftStorm-Studio/IGF")
+                url.set("https://github.com/ririf4/IGF")
                 licenses {
                     license {
                         name.set("MIT")
@@ -76,15 +75,15 @@ publishing {
                 }
                 developers {
                     developer {
-                        id.set("ruxy")
-                        name.set("Ruxy")
-                        email.set("main@rk4z.net")
+                        id.set("ririfa")
+                        name.set("RiriFa")
+                        email.set("main@ririfa.net")
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/SwiftStorm-Studio/IGF.git")
-                    developerConnection.set("scm:git:ssh://github.com/SwiftStorm-Studio/IGF.git")
-                    url.set("https://github.com/SwiftStorm-Studio/IGF")
+                    connection.set("scm:git:git://github.com/ririf4/IGF.git")
+                    developerConnection.set("scm:git:ssh://github.com/ririf4/IGF.git")
+                    url.set("https://github.com/ririf4/IGF")
                 }
             }
         }

@@ -24,10 +24,27 @@ class DynamicGUI<T : Enum<T>>(
 	private val enumClass: Class<T>,
 	player: Player
 ): InventoryGUI(player) {
+	// These functions are for Java users
+	companion object {
+		@JvmStatic
+		fun <T : Enum<T>> of(enumKClass: KClass<T>, player: Player): DynamicGUI<T> =
+			DynamicGUI(enumKClass, player)
+
+		@JvmStatic
+		fun of(player: Player) =
+			DynamicGUI(SinglePage::class, player)
+	}
+
 	private var currentState: T? = null
 	private var buttonMappings: Map<T, List<Button>> = emptyMap()
 
 	constructor(enumKClass: KClass<T>, player: Player): this(enumKClass.java, player)
+
+	@Suppress("UNCHECKED_CAST")
+	constructor(player: Player): this(
+		SinglePage::class as KClass<T>,
+		player
+	)
 
 	override fun build(): InventoryGUI {
 		if (currentState == null && enumClass.isAssignableFrom(SinglePage::class.java)) {
@@ -94,8 +111,8 @@ class DynamicGUI<T : Enum<T>>(
 	 * - `inventory.setItem(slot, item)`: Places individual buttons into their designated slots.
 	 * - `player.updateInventory()`: Ensures the player's view is updated with any changes made to the GUI.
 	 *
-	 * If the current state does not have mapped buttons, the inventory will remain empty
-	 * aside from the background, if one is applied.
+	 * If the current state doesn't have mapped buttons, the inventory will remain empty
+	 * aside from the background if one is applied.
 	 *
 	 * This function assumes that `currentState` has been set and that `buttonMappings`
 	 * contains a valid mapping for the state.

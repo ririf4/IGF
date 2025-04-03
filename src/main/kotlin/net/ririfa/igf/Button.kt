@@ -82,7 +82,7 @@ data class DataWrapper<P : Any, C : Any>(
  * @since 1.1.0
  * @author RiriFa
  */
-data class Button(
+data class Button @JvmOverloads constructor(
     val slot: Int,
     val material: Material,
     val name: Component,
@@ -163,6 +163,7 @@ fun Button.addData(vararg entries: Pair<NamespacedKey, DataWrapper<*, *>>): Butt
  * @since 1.1.0
  * @author RiriFa
  */
+@JvmOverloads
 fun Material.toItemStack(
     name: Component? = null,
     data: Map<NamespacedKey, DataWrapper<*, *>> = emptyMap()
