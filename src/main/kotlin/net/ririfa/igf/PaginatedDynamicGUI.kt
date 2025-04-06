@@ -26,7 +26,7 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      * to be rendered for that state.
      * It serves as the foundation for dynamically updating
      * the displayed items based on the current state*/
-    val pageItemsMap: MutableMap<S, List<Button>> = mutableMapOf()
+    val stateButtonMap: MutableMap<S, List<Button>> = mutableMapOf()
         get() = field.toMap().toMutableMap()
 
     /**
@@ -143,8 +143,8 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      *                 to be displayed in that state's corresponding page layout.
      * @return The updated instance of PaginatedDynamicGUI<T> for method chaining.
      */
-    fun setPaginatedMappings(mappings: Map<S, List<Button>>): PaginatedDynamicGUI<S> {
-        pageItemsMap.putAll(mappings)
+    fun setStateButtonMapping(mappings: Map<S, List<Button>>): PaginatedDynamicGUI<S> {
+        stateButtonMap.putAll(mappings)
         return this
     }
 
@@ -295,7 +295,7 @@ class PaginatedDynamicGUI<S : Enum<S>>(
         items.forEach { item -> inventory.setItem(item.slot, item.toItemStack()) }
 
         val state = currentState ?: return
-        pageItemsMap[state]?.forEach { button ->
+        stateButtonMap[state]?.forEach { button ->
             inventory.setItem(button.slot, button.toItemStack())
         }
 

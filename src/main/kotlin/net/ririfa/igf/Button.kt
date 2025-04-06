@@ -122,6 +122,7 @@ fun <G> Button.setClick(
     return this
 }
 
+// Buttonkt.setClick if you're using Java
 fun Button.setClick(
     block: (Player) -> Unit
 ): Button {
@@ -138,6 +139,18 @@ inline fun <reified G : InventoryGUI> Button.setClickTyped(
     return this
 }
 
+// Buttonkt.setClickTyped if you're using Java
+fun <G : InventoryGUI> Button.setClickTyped(
+    guiClass: Class<G>,
+    block: (Player, G) -> Unit
+): Button {
+    this.onClick = ClickEvent { player, gui ->
+        if (guiClass.isInstance(gui)) {
+            block(player, guiClass.cast(gui))
+        }
+    }
+    return this
+}
 
 /**
  * Adds a click handler to the button without overwriting the existing one.
