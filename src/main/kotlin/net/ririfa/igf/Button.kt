@@ -16,7 +16,7 @@ import org.bukkit.persistence.PersistentDataType
  */
 @FunctionalInterface
 fun interface ClickEvent {
-    fun onClick(player: Player)
+    fun onClick(player: Player, gui: InventoryGUI)
 }
 
 /**
@@ -98,18 +98,46 @@ data class Button @JvmOverloads constructor(
     fun toItemStack(): ItemStack = material.toItemStack(name, data)
 }
 
-/**
- * Sets a click callback for the button. The provided callback will be executed
- * whenever the button is clicked by a player.
- *
- * @param callback A lambda function that takes a [Player] as a parameter. This function
- * will be called when the button is clicked by the specified player.
- * @return The modified [Button] instance with the assigned click callback.
- */
-fun Button.setClick(callback: (Player) -> Unit): Button {
-    this.onClick = ClickEvent { player -> callback(player) }
+fun <S : Enum<S>> Button.setClick(
+    gui: PaginatedDynamicGUI<S>,
+    block: (Player, PaginatedDynamicGUI<S>) -> Unit
+): Button {
+    this.onClick = ClickEvent { player, _ -> block(player, gui) }
     return this
 }
+
+fun <S : Enum<S>> Button.setClick(
+    gui: DynamicGUI<S>,
+    block: (Player, DynamicGUI<S>) -> Unit
+): Button {
+    this.onClick = ClickEvent { player, _ -> block(player, gui) }
+    return this
+}
+
+fun <G> Button.setClick(
+    gui: G,
+    block: (Player, G) -> Unit
+): Button {
+    this.onClick = ClickEvent { player, _ -> block(player, gui) }
+    return this
+}
+
+fun Button.setClick(
+    block: (Player) -> Unit
+): Button {
+    this.onClick = ClickEvent { player, _ -> block(player) }
+    return this
+}
+
+inline fun <reified G : InventoryGUI> Button.setClickTyped(
+    crossinline block: (Player, G) -> Unit
+): Button {
+    this.onClick = ClickEvent { player, gui ->
+        if (gui is G) block(player, gui)
+    }
+    return this
+}
+
 
 /**
  * Adds a click handler to the button without overwriting the existing one.
@@ -121,8 +149,8 @@ fun Button.setClick(callback: (Player) -> Unit): Button {
  */
 fun Button.appendClick(callback: (Player) -> Unit): Button {
     val existing = this.onClick
-    this.onClick = ClickEvent { player ->
-        existing?.onClick(player)
+    this.onClick = ClickEvent { player, gui ->
+        existing?.onClick(player, gui)
         callback(player)
     }
     return this

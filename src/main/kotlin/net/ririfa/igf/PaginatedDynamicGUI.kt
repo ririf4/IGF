@@ -26,39 +26,45 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      * to be rendered for that state.
      * It serves as the foundation for dynamically updating
      * the displayed items based on the current state*/
-    private val pageItemsMap: MutableMap<S, List<Button>> = mutableMapOf()
+    val pageItemsMap: MutableMap<S, List<Button>> = mutableMapOf()
+        get() = field.toMap().toMutableMap()
+
     /**
      * Represents the current state of the paginated GUI.
      * This variable tracks the currently active state, allowing the GUI
      * to dynamically update its content and layout based on the specified state.
      *
      */
-    private var currentState: S? = null
+    var currentState: S? = null
+        private set
     /**
      * Represents the current page being displayed in the paginated GUI.
      *
      * This variable is used to track and manage the navigation between different pages within a paginated dynamic graphical user interface.
      * Modifying this value directly updates the displayed page and related methods*/
-    private var currentPage: Int = 0
-
+    var currentPage: Int = 0
+        private set
     /**
      * Represents the list of slot indexes used for displaying items in the paginated GUI.
      * Each integer in the list corresponds to a slot position in the GUI inventory.
      * These positions determine where items will be placed for display on the current page.
      */
-    private var slotPositions: List<Int> = emptyList()
+    var slotPositions: List<Int> = emptyList()
+        private set
     /**
      * Represents the maximum number of items to be displayed per page in the paginated GUI.
      * This value determines how many items can be shown on a single page before pagination is applied.
      */
-    private var itemsPerPage: Int = 9
+    var itemsPerPage: Int = 9
+        private set
     /**
      * Represents a button displayed when there are no items to show in the GUI.
      * This button is optional and may not be initialized for all instances of the GUI.
      * The button can serve as a placeholder or provide a message indicating that no items
      * are currently available.
      */
-    private var emptyMessageButton: Button? = null
+    var emptyMessageButton: Button? = null
+        private set
     /**
      * Represents a pair of buttons used for navigation between pages in the paginated GUI.
      * The first element corresponds to the "Previous Page" button, and the second corresponds
@@ -66,21 +72,24 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      * This property is nullable to indicate that navigation buttons
      * may not always be present.
      */
-    private var pageChangeButtons: Pair<Button, Button>? = null
+    var pageChangeButtons: Pair<Button, Button>? = null
+        private set
 
     /**
      * Represents the list of buttons to be displayed on the current page of the paginated GUI.
      * This list is populated based on the current state and the mappings defined in `pageItemsMap`.
      * It contains the actual buttons that will be rendered in the GUI for user interaction.
      */
-    private var pageItems: List<Button> = emptyList()
+    var pageItems: List<Button> = emptyList()
+        private set
 
     /**
      * Represents the total number of pages available in the paginated GUI.
      * This value is calculated based on the total number of items and the items per page.
      * It determines how many pages are needed to display all items in the GUI.
      */
-    private var totalPages = 1
+    var totalPages = 1
+        private set
 
     /**
      * Constructs a `PaginatedDynamicGUI` instance by delegating the given `enumKClass` and `player`
@@ -203,8 +212,8 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      */
     fun setPageButtons(prev: Button, next: Button): PaginatedDynamicGUI<S> {
         pageChangeButtons = prev to next
-        prev.setClick { prevPage() }
-        next.setClick { nextPage() }
+        prev.setClick(this) { _, _ -> prevPage() }
+        next.setClick(this) { _, _ -> nextPage() }
         return this
     }
 

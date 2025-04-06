@@ -124,8 +124,8 @@ class PaginatedGUI(
      * @throws IllegalStateException If custom IDs aren't set for page navigation.
      */
     fun setPageButtons(prevButton: Button, nextButton: Button): PaginatedGUI {
-        prevPageButton = prevButton.setClick { prevPage() }
-        nextPageButton = nextButton.setClick { nextPage() }
+        prevPageButton = prevButton.setClick(this) { _, _ -> prevPage() }
+        nextPageButton = nextButton.setClick(this) { _, _ -> nextPage() }
         return this
     }
 
