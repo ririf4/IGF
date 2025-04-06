@@ -92,6 +92,8 @@ class PaginatedGUI(
         inventory.clear()
         applyBackground()
 
+        items.forEach { item -> inventory.setItem(item.slot, item.toItemStack()) }
+
         if (pageItems.isEmpty()) {
             emptyMessageButton?.let { inventory.setItem(it.slot, it.toItemStack()) }
             return

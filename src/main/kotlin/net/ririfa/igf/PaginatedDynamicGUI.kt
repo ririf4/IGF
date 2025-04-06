@@ -9,16 +9,16 @@ import kotlin.reflect.KClass
  * It supports custom item mappings, navigation buttons,
  * and empty state messages to provide a flexible inventory GUI system.
  *
- * @param T the enum type for state management must extend Enum
+ * @param S the enum type for state management must extend Enum
  * @param enumClass the class of the enum used for managing GUI states
  * @param player the player associated with the GUI
  */
-class PaginatedDynamicGUI<T : Enum<T>>(
-    private val enumClass: Class<T>,
+class PaginatedDynamicGUI<S : Enum<S>>(
+    private val enumClass: Class<S>,
     player: Player
 ) : InventoryGUI(player) {
     /**
-     * A mutable map that associates a state of type [T] with a list of [Button]s
+     * A mutable map that associates a state of type [S] with a list of [Button]s
      * intended to be displayed on a given page in the paginated GUI.
      *
      * This map is used to store the paginated contents of the GUI, where each key represents
@@ -26,14 +26,14 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      * to be rendered for that state.
      * It serves as the foundation for dynamically updating
      * the displayed items based on the current state*/
-    private val pageItemsMap: MutableMap<T, List<Button>> = mutableMapOf()
+    private val pageItemsMap: MutableMap<S, List<Button>> = mutableMapOf()
     /**
      * Represents the current state of the paginated GUI.
      * This variable tracks the currently active state, allowing the GUI
      * to dynamically update its content and layout based on the specified state.
      *
      */
-    private var currentState: T? = null
+    private var currentState: S? = null
     /**
      * Represents the current page being displayed in the paginated GUI.
      *
@@ -66,7 +66,21 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      * This property is nullable to indicate that navigation buttons
      * may not always be present.
      */
-    private var pageButtons: Pair<Button, Button>? = null
+    private var pageChangeButtons: Pair<Button, Button>? = null
+
+    /**
+     * Represents the list of buttons to be displayed on the current page of the paginated GUI.
+     * This list is populated based on the current state and the mappings defined in `pageItemsMap`.
+     * It contains the actual buttons that will be rendered in the GUI for user interaction.
+     */
+    private var pageItems: List<Button> = emptyList()
+
+    /**
+     * Represents the total number of pages available in the paginated GUI.
+     * This value is calculated based on the total number of items and the items per page.
+     * It determines how many pages are needed to display all items in the GUI.
+     */
+    private var totalPages = 1
 
     /**
      * Constructs a `PaginatedDynamicGUI` instance by delegating the given `enumKClass` and `player`
@@ -75,18 +89,7 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      * @param enumKClass The KClass of the generic type `T` used to manage the states of the GUI.
      * @param player The player for whom the GUI is constructed.
      */
-    constructor(enumKClass: KClass<T>, player: Player): this(enumKClass.java, player)
-
-    /**
-     * Secondary constructor for the PaginatedDynamicGUI class, specifically designed for initializing
-     * the GUI with a default state of a single page.
-     * This utilizes `SinglePage::class` as the default
-     */
-    @Suppress("UNCHECKED_CAST")
-    constructor(player: Player): this(
-        SinglePage::class as KClass<T>,
-        player
-    )
+    constructor(enumKClass: KClass<S>, player: Player): this(enumKClass.java, player)
 
     /**
      * A companion object for the `PaginatedDynamicGUI` class.
@@ -101,8 +104,25 @@ class PaginatedDynamicGUI<T : Enum<T>>(
          * @return A new instance of [PaginatedDynamicGUI] configured with the provided enum class and player.
          */
         @JvmStatic
-        fun <T : Enum<T>> of(enumClass: KClass<T>, player: Player): PaginatedDynamicGUI<T> =
+        fun <S : Enum<S>> of(enumClass: Class<S>, player: Player): PaginatedDynamicGUI<S> =
             PaginatedDynamicGUI(enumClass, player)
+
+        /**
+         * Kotlin-friendly version of the [PaginatedDynamicGUI] constructor using a reified enum type.
+         *
+         * This function allows creating a [PaginatedDynamicGUI] without explicitly passing the enum class.
+         *
+         * ### Example:
+         * ```kotlin
+         * val gui = PaginatedDynamicGUI.of<MyGUIState>(player)
+         * ```
+         *
+         * @param S The enum type representing the GUI state.
+         * @param player The player for whom the GUI is shown.
+         * @return A [PaginatedDynamicGUI] instance bound to the enum type [S].
+         */
+        inline fun <reified S : Enum<S>> of(player: Player): PaginatedDynamicGUI<S> =
+            PaginatedDynamicGUI(S::class.java, player)
     }
 
     /**
@@ -114,7 +134,7 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      *                 to be displayed in that state's corresponding page layout.
      * @return The updated instance of PaginatedDynamicGUI<T> for method chaining.
      */
-    fun setPaginatedMappings(mappings: Map<T, List<Button>>): PaginatedDynamicGUI<T> {
+    fun setPaginatedMappings(mappings: Map<S, List<Button>>): PaginatedDynamicGUI<S> {
         pageItemsMap.putAll(mappings)
         return this
     }
@@ -125,7 +145,7 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      * @param slots A list of integers representing the slot positions to be used.
      * @return The current instance of [PaginatedDynamicGUI] for method chaining.
      */
-    fun setSlotPositions(slots: List<Int>): PaginatedDynamicGUI<T> {
+    fun setSlotPositions(slots: List<Int>): PaginatedDynamicGUI<S> {
         this.slotPositions = slots
         return this
     }
@@ -136,8 +156,28 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      * @param count The number of items to be displayed per page.
      * @return The [PaginatedDynamicGUI] instance for method chaining.
      */
-    fun setItemsPerPage(count: Int): PaginatedDynamicGUI<T> {
+    fun setItemsPerPage(count: Int): PaginatedDynamicGUI<S> {
         this.itemsPerPage = count
+        return this
+    }
+
+    /**
+     * Sets the items to be paginated.
+     * @param items The list of items to display across multiple pages.
+     * @return This [PaginatedDynamicGUI] instance.
+     */
+    fun setPageItems(items: List<Button>): PaginatedDynamicGUI<S> {
+        this.pageItems = items
+        setTotalPages(items.size)
+        return this
+    }
+
+    /**
+     * Sets the total number of pages.
+     * This method should be called after setting up items.
+     */
+    fun setTotalPages(totalItems: Int): PaginatedDynamicGUI<S> {
+        this.totalPages = (totalItems + itemsPerPage - 1) / itemsPerPage
         return this
     }
 
@@ -148,7 +188,7 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      *               This button will be displayed when there are no items in the current state or page.
      * @return The current instance of [PaginatedDynamicGUI] to enable method chaining.
      */
-    fun setEmptyMessageButton(button: Button): PaginatedDynamicGUI<T> {
+    fun setEmptyMessageButton(button: Button): PaginatedDynamicGUI<S> {
         this.emptyMessageButton = button
         return this
     }
@@ -161,8 +201,8 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      * @param next The button used to navigate to the next page.
      * @return The current instance of [PaginatedDynamicGUI] for method chaining.
      */
-    fun setPageButtons(prev: Button, next: Button): PaginatedDynamicGUI<T> {
-        pageButtons = prev to next
+    fun setPageButtons(prev: Button, next: Button): PaginatedDynamicGUI<S> {
+        pageChangeButtons = prev to next
         prev.setClick { prevPage() }
         next.setClick { nextPage() }
         return this
@@ -174,7 +214,7 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      * @param state The new state to set for the GUI.
      * @return The current instance of [PaginatedDynamicGUI] with the updated state.
      */
-    fun setState(state: T): PaginatedDynamicGUI<T> {
+    fun setState(state: S): PaginatedDynamicGUI<S> {
         this.currentState = state
         this.currentPage = 0
         return this
@@ -201,7 +241,7 @@ class PaginatedDynamicGUI<T : Enum<T>>(
      *
      * @param state The new state to switch to. Typically corresponds to a mapped set of items in the GUI.
      */
-    fun switchState(state: T) {
+    fun switchState(state: S) {
         if (state != currentState) {
             currentState = state
             currentPage = 0
@@ -243,34 +283,32 @@ class PaginatedDynamicGUI<T : Enum<T>>(
         inventory.clear()
         applyBackground()
 
-        items.forEach { inventory.setItem(it.slot, it.toItemStack()) }
+        items.forEach { item -> inventory.setItem(item.slot, item.toItemStack()) }
 
         val state = currentState ?: return
-        val items = pageItemsMap[state].orEmpty()
+        pageItemsMap[state]?.forEach { button ->
+            inventory.setItem(button.slot, button.toItemStack())
+        }
 
-        if (items.isEmpty()) {
+        if (pageItems.isEmpty()) {
             emptyMessageButton?.let { inventory.setItem(it.slot, it.toItemStack()) }
             return
         }
 
-        val totalPages = (items.size + itemsPerPage - 1) / itemsPerPage
-        currentPage = currentPage.coerceIn(0, totalPages - 1)
+        val startIndex = currentPage * itemsPerPage
+        val endIndex = (startIndex + itemsPerPage).coerceAtMost(pageItems.size)
 
-        val start = currentPage * itemsPerPage
-        val end = (start + itemsPerPage).coerceAtMost(items.size)
-        val pageItems = items.subList(start, end)
-
-        pageItems.forEachIndexed { index, button ->
+        pageItems.subList(startIndex, endIndex).forEachIndexed { index, button ->
             slotPositions.getOrNull(index)?.let { slot ->
                 inventory.setItem(slot, button.toItemStack())
             }
         }
 
-        pageButtons?.let { (prev, next) ->
-            if (currentPage > 0) inventory.setItem(prev.slot, prev.toItemStack())
-            if (currentPage < totalPages - 1) inventory.setItem(next.slot, next.toItemStack())
+        listOfNotNull(
+            pageChangeButtons?.first?.takeIf { currentPage > 0 },
+            pageChangeButtons?.second?.takeIf { currentPage < totalPages - 1 }
+        ).forEach { button ->
+            inventory.setItem(button.slot, button.toItemStack())
         }
-
-        player.updateInventory()
     }
 }
