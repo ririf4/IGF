@@ -33,9 +33,6 @@ class DynamicGUI<S : Enum<S>>(
 		@JvmStatic
 		fun of(player: Player) =
 			DynamicGUI(SinglePage::class, player)
-
-		inline fun <reified S : Enum<S>> of(player: Player): DynamicGUI<S> =
-			DynamicGUI(S::class.java, player)
 	}
 
 	private var currentState: S? = null
