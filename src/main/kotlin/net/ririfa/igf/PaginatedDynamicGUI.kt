@@ -1,6 +1,7 @@
 package net.ririfa.igf
 
 import org.bukkit.entity.Player
+import org.jetbrains.annotations.ApiStatus
 import kotlin.reflect.KClass
 
 /**
@@ -92,6 +93,16 @@ class PaginatedDynamicGUI<S : Enum<S>>(
         private set
 
     /**
+     * A lambda function that generates a list of buttons based on the current state.
+     * This function is used to dynamically create the button mappings for the GUI
+     * based on the current state.
+     * It allows for custom button generation logic to be applied
+     * when the state changes.
+     */
+    var statePageItemProvider: ((S) -> List<Button>)? = null
+        private set
+
+    /**
      * Constructs a `PaginatedDynamicGUI` instance by delegating the given `enumKClass` and `player`
      * to another constructor.
      *
@@ -149,6 +160,19 @@ class PaginatedDynamicGUI<S : Enum<S>>(
     }
 
     /**
+     * Sets the button provider function for generating buttons based on the current state.
+     * This function is called to create a list of buttons whenever the state changes,
+     * allowing for dynamic button generation.
+     *
+     * @param provider A lambda function that takes a state of type S and returns a list of buttons.
+     * @return The current instance of [PaginatedDynamicGUI] for method chaining.
+     */
+    fun setPageItemProvider(provider: (S) -> List<Button>): PaginatedDynamicGUI<S> {
+        this.statePageItemProvider = provider
+        return this
+    }
+
+    /**
      * Sets the slot positions for the inventory GUI.
      *
      * @param slots A list of integers representing the slot positions to be used.
@@ -175,6 +199,7 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      * @param items The list of items to display across multiple pages.
      * @return This [PaginatedDynamicGUI] instance.
      */
+    @ApiStatus.Internal // Maybe you should use `setPageItemProvider`
     fun setPageItems(items: List<Button>): PaginatedDynamicGUI<S> {
         this.pageItems = items
         setTotalPages(items.size)
@@ -210,7 +235,7 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      * @param next The button used to navigate to the next page.
      * @return The current instance of [PaginatedDynamicGUI] for method chaining.
      */
-    fun setPageButtons(prev: Button, next: Button): PaginatedDynamicGUI<S> {
+    fun setPageChangeButtons(prev: Button, next: Button): PaginatedDynamicGUI<S> {
         pageChangeButtons = prev to next
         prev.setClick(this) { _, _ -> prevPage() }
         next.setClick(this) { _, _ -> nextPage() }
@@ -255,6 +280,12 @@ class PaginatedDynamicGUI<S : Enum<S>>(
             currentState = state
             currentPage = 0
         }
+
+        statePageItemProvider?.let {
+            val items = it(state)
+            setPageItems(items)
+        }
+
         display()
     }
 

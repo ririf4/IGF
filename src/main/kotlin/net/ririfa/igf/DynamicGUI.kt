@@ -6,7 +6,7 @@ import kotlin.reflect.KClass
 /**
  * A generic dynamic GUI framework for creating inventories with an adaptive state-based design.
  *
- * @param T The type of the state enumeration that defines the various states the GUI can have.
+ * @param S The type of the state enumeration that defines the various states the GUI can have.
  * @param player The player for whom this GUI is being created.
  * @see InventoryGUI
  * @since 1.1.0
@@ -20,36 +20,39 @@ import kotlin.reflect.KClass
  * - Allows the creation of mappings between states and button configurations.
  * - Supports dynamic updates of inventory content based on the current state.
  */
-class DynamicGUI<T : Enum<T>>(
-	private val enumClass: Class<T>,
+class DynamicGUI<S : Enum<S>>(
+	private val enumClass: Class<S>,
 	player: Player
 ): InventoryGUI(player) {
 	// These functions are for Java users
 	companion object {
 		@JvmStatic
-		fun <T : Enum<T>> of(enumKClass: KClass<T>, player: Player): DynamicGUI<T> =
+		fun <S : Enum<S>> of(enumKClass: KClass<S>, player: Player): DynamicGUI<S> =
 			DynamicGUI(enumKClass, player)
 
 		@JvmStatic
 		fun of(player: Player) =
 			DynamicGUI(SinglePage::class, player)
+
+		inline fun <reified S : Enum<S>> of(player: Player): DynamicGUI<S> =
+			DynamicGUI(S::class.java, player)
 	}
 
-	private var currentState: T? = null
-	private var buttonMappings: Map<T, List<Button>> = emptyMap()
+	private var currentState: S? = null
+	private var buttonMappings: Map<S, List<Button>> = emptyMap()
 
-	constructor(enumKClass: KClass<T>, player: Player): this(enumKClass.java, player)
+	constructor(enumKClass: KClass<S>, player: Player): this(enumKClass.java, player)
 
 	@Suppress("UNCHECKED_CAST")
 	constructor(player: Player): this(
-		SinglePage::class as KClass<T>,
+		SinglePage::class as KClass<S>,
 		player
 	)
 
 	override fun build(): InventoryGUI {
 		if (currentState == null && enumClass.isAssignableFrom(SinglePage::class.java)) {
 			@Suppress("UNCHECKED_CAST")
-			currentState = SinglePage.PAGE as T
+			currentState = SinglePage.PAGE as S
 		}
 		create()
 		updateButtonsForState()
@@ -62,7 +65,7 @@ class DynamicGUI<T : Enum<T>>(
 	 * @param initialState The initial state to set for the GUI.
 	 * @return The current instance of DynamicGUI for method chaining.
 	 */
-	fun setState(initialState: T): DynamicGUI<T> {
+	fun setState(initialState: S): DynamicGUI<S> {
 		this.currentState = initialState
 		return this
 	}
@@ -71,11 +74,11 @@ class DynamicGUI<T : Enum<T>>(
 	 * Sets the button mappings for the DynamicGUI. Each state is associated with a list of buttons
 	 * that define the appearance and functionality of the GUI in that state.
 	 *
-	 * @param mappings A map associating each state of type [T] with a list of [Button]s. The keys represent
+	 * @param mappings A map associating each state of type [S] with a list of [Button]s. The keys represent
 	 * the possible states of the GUI, and the values are the corresponding lists of buttons to display for each state.
 	 * @return The current instance of [DynamicGUI] for method chaining.
 	 */
-	fun setButtonMappings(mappings: Map<T, List<Button>>): DynamicGUI<T> {
+	fun setButtonMappings(mappings: Map<S, List<Button>>): DynamicGUI<S> {
 		this.buttonMappings = mappings
 		return this
 	}
@@ -84,9 +87,9 @@ class DynamicGUI<T : Enum<T>>(
 	 * Updates the state of the DynamicGUI to a new state and refreshes the buttons to match the new state.
 	 * If the new state is the same as the current state, no action is taken.
 	 *
-	 * @param newState The new state of type [T] to switch to. The buttons and GUI layout will update to reflect this state.
+	 * @param newState The new state of type [S] to switch to. The buttons and GUI layout will update to reflect this state.
 	 */
-	fun switchState(newState: T) {
+	fun switchState(newState: S) {
 		if (newState == currentState) return
 		currentState = newState
 		updateButtonsForState()
