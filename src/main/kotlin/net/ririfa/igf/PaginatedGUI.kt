@@ -31,6 +31,22 @@ class PaginatedGUI(
         return this
     }
 
+    override fun getAllButtons(): List<Button> {
+        return buildList {
+            addAll(items)
+
+            addAll(pageItems)
+
+            prevPageButton?.let { add(it) }
+            nextPageButton?.let { add(it) }
+
+            if (pageItems.isEmpty()) {
+                emptyMessageButton?.let { add(it) }
+            }
+        }
+    }
+
+
     /**
      * Sets the slot positions for items.
      * @param slots The list of slot positions for the items.

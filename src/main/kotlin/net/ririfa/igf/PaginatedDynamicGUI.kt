@@ -18,17 +18,7 @@ class PaginatedDynamicGUI<S : Enum<S>>(
     private val enumClass: Class<S>,
     player: Player
 ) : InventoryGUI(player) {
-    /**
-     * A mutable map that associates a state of type [S] with a list of [Button]s
-     * intended to be displayed on a given page in the paginated GUI.
-     *
-     * This map is used to store the paginated contents of the GUI, where each key represents
-     * a specific state/context of the GUI, and the corresponding value is a list of buttons
-     * to be rendered for that state.
-     * It serves as the foundation for dynamically updating
-     * the displayed items based on the current state*/
-    val stateButtonMap: MutableMap<S, List<Button>> = mutableMapOf()
-        get() = field.toMap().toMutableMap()
+    private val stateFixedButtonProviders: MutableMap<S, (S) -> List<Button>> = mutableMapOf()
 
     /**
      * Represents the current state of the paginated GUI.
@@ -102,6 +92,8 @@ class PaginatedDynamicGUI<S : Enum<S>>(
     var statePageItemProvider: ((S) -> List<Button>)? = null
         private set
 
+    var paginationEnabledStates: Set<S> = enumClass.enumConstants.toSet()
+
     /**
      * Constructs a `PaginatedDynamicGUI` instance by delegating the given `enumKClass` and `player`
      * to another constructor.
@@ -145,19 +137,16 @@ class PaginatedDynamicGUI<S : Enum<S>>(
             PaginatedDynamicGUI(S::class.java, player)
     }
 
-    /**
-     * Sets the paginated mappings for the GUI.
-     * The provided mappings define associations between a given
-     * state and its corresponding list of buttons, specifying how the GUI pages are structured for each state.
-     *
-     * @param mappings A map where the key represents a state of type T, and the value is a list of buttons
-     *                 to be displayed in that state's corresponding page layout.
-     * @return The updated instance of PaginatedDynamicGUI<T> for method chaining.
-     */
-    fun setStateButtonMapping(mappings: Map<S, List<Button>>): PaginatedDynamicGUI<S> {
-        stateButtonMap.putAll(mappings)
+    fun setStateFixedButtonProviders(providers: Map<S, (S) -> List<Button>>): PaginatedDynamicGUI<S> {
+        stateFixedButtonProviders.putAll(providers)
         return this
     }
+
+    fun setPaginationEnabledStates(states: Set<S>): PaginatedDynamicGUI<S> {
+        this.paginationEnabledStates = states
+        return this
+    }
+
 
     /**
      * Sets the button provider function for generating buttons based on the current state.
@@ -268,6 +257,21 @@ class PaginatedDynamicGUI<S : Enum<S>>(
         return this
     }
 
+    override fun getAllButtons(): List<Button> {
+        return buildList {
+            addAll(items)
+            currentState?.let {
+                stateFixedButtonProviders[it]?.let { provider ->
+                    addAll(provider(it))
+                }
+            }
+            if (currentState in paginationEnabledStates) {
+                addAll(pageItems)
+                pageChangeButtons?.let { (prev, next) -> add(prev); add(next) }
+            }
+        }
+    }
+
     /**
      * Switches the current state of the GUI to the specified state.
      * If the given state is different from the current state, it updates the state,
@@ -326,29 +330,35 @@ class PaginatedDynamicGUI<S : Enum<S>>(
         items.forEach { item -> inventory.setItem(item.slot, item.toItemStack()) }
 
         val state = currentState ?: return
-        stateButtonMap[state]?.forEach { button ->
+
+        stateFixedButtonProviders[state]?.invoke(state)?.forEach { button ->
             inventory.setItem(button.slot, button.toItemStack())
         }
 
-        if (pageItems.isEmpty()) {
-            emptyMessageButton?.let { inventory.setItem(it.slot, it.toItemStack()) }
-            return
-        }
+        val isPaginationEnabled = currentState in paginationEnabledStates
 
-        val startIndex = currentPage * itemsPerPage
-        val endIndex = (startIndex + itemsPerPage).coerceAtMost(pageItems.size)
+        if (isPaginationEnabled) {
+            if (pageItems.isEmpty()) {
+                emptyMessageButton?.let { inventory.setItem(it.slot, it.toItemStack()) }
+                return
+            }
 
-        pageItems.subList(startIndex, endIndex).forEachIndexed { index, button ->
-            slotPositions.getOrNull(index)?.let { slot ->
-                inventory.setItem(slot, button.toItemStack())
+            val startIndex = currentPage * itemsPerPage
+            val endIndex = (startIndex + itemsPerPage).coerceAtMost(pageItems.size)
+
+            pageItems.subList(startIndex, endIndex).forEachIndexed { index, button ->
+                slotPositions.getOrNull(index)?.let { slot ->
+                    inventory.setItem(slot, button.toItemStack())
+                }
+            }
+
+            listOfNotNull(
+                pageChangeButtons?.first?.takeIf { currentPage > 0 },
+                pageChangeButtons?.second?.takeIf { currentPage < totalPages - 1 }
+            ).forEach { button ->
+                inventory.setItem(button.slot, button.toItemStack())
             }
         }
 
-        listOfNotNull(
-            pageChangeButtons?.first?.takeIf { currentPage > 0 },
-            pageChangeButtons?.second?.takeIf { currentPage < totalPages - 1 }
-        ).forEach { button ->
-            inventory.setItem(button.slot, button.toItemStack())
-        }
     }
 }

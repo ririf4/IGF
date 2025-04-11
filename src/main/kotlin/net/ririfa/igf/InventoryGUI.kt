@@ -122,6 +122,8 @@ abstract class InventoryGUI(
      */
     abstract fun build(): InventoryGUI
 
+    abstract fun getAllButtons(): List<Button>
+
     /**
      * Displays the items set in this GUI in their respective slots.
      * This method iterates through the list of [Button]s and places them in the specified slots.

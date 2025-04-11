@@ -56,6 +56,19 @@ class DynamicGUI<S : Enum<S>>(
 		return this
 	}
 
+	override fun getAllButtons(): List<Button> {
+		return buildList {
+			addAll(items)
+
+			currentState?.let { state ->
+				buttonMappings[state]?.let { stateButtons ->
+					addAll(stateButtons)
+				}
+			}
+		}
+	}
+
+
 	/**
 	 * Sets the current state of the DynamicGUI to the specified initial state.
 	 *

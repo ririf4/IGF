@@ -21,4 +21,7 @@ class SimpleGUI(
         displayItems()
         return this
     }
+
+    // SimpleGUI doesn't have original item holder
+    override fun getAllButtons(): List<Button> = items
 }

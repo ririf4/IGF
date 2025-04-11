@@ -67,7 +67,7 @@ object IGF : Listener {
 
         event.isCancelled = true
 
-        val button = holder.items.find { button -> button.slot == event.slot } ?: return
+        val button = holder.getAllButtons().find { button -> button.slot == event.slot } ?: return
 
         button.onClick?.run {
             (event.whoClicked as? Player)?.let { player ->
