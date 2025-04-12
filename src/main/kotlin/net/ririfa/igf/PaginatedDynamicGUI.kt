@@ -19,80 +19,28 @@ class PaginatedDynamicGUI<S : Enum<S>>(
     player: Player
 ) : InventoryGUI(player) {
     private val stateFixedButtonProviders: MutableMap<S, (S) -> List<Button>> = mutableMapOf()
-
-    /**
-     * Represents the current state of the paginated GUI.
-     * This variable tracks the currently active state, allowing the GUI
-     * to dynamically update its content and layout based on the specified state.
-     *
-     */
     var currentState: S? = null
         private set
-    /**
-     * Represents the current page being displayed in the paginated GUI.
-     *
-     * This variable is used to track and manage the navigation between different pages within a paginated dynamic graphical user interface.
-     * Modifying this value directly updates the displayed page and related methods*/
     var currentPage: Int = 0
         private set
-    /**
-     * Represents the list of slot indexes used for displaying items in the paginated GUI.
-     * Each integer in the list corresponds to a slot position in the GUI inventory.
-     * These positions determine where items will be placed for display on the current page.
-     */
     var slotPositions: List<Int> = emptyList()
         private set
-    /**
-     * Represents the maximum number of items to be displayed per page in the paginated GUI.
-     * This value determines how many items can be shown on a single page before pagination is applied.
-     */
     var itemsPerPage: Int = 9
         private set
-    /**
-     * Represents a button displayed when there are no items to show in the GUI.
-     * This button is optional and may not be initialized for all instances of the GUI.
-     * The button can serve as a placeholder or provide a message indicating that no items
-     * are currently available.
-     */
     var emptyMessageButton: Button? = null
         private set
-    /**
-     * Represents a pair of buttons used for navigation between pages in the paginated GUI.
-     * The first element corresponds to the "Previous Page" button, and the second corresponds
-     * to the "Next Page" button.
-     * This property is nullable to indicate that navigation buttons
-     * may not always be present.
-     */
     var pageChangeButtons: Pair<Button, Button>? = null
         private set
-
-    /**
-     * Represents the list of buttons to be displayed on the current page of the paginated GUI.
-     * This list is populated based on the current state and the mappings defined in `pageItemsMap`.
-     * It contains the actual buttons that will be rendered in the GUI for user interaction.
-     */
     var pageItems: List<Button> = emptyList()
         private set
-
-    /**
-     * Represents the total number of pages available in the paginated GUI.
-     * This value is calculated based on the total number of items and the items per page.
-     * It determines how many pages are needed to display all items in the GUI.
-     */
     var totalPages = 1
         private set
-
-    /**
-     * A lambda function that generates a list of buttons based on the current state.
-     * This function is used to dynamically create the button mappings for the GUI
-     * based on the current state.
-     * It allows for custom button generation logic to be applied
-     * when the state changes.
-     */
     var statePageItemProvider: ((S) -> List<Button>)? = null
         private set
-
     var paginationEnabledStates: Set<S> = enumClass.enumConstants.toSet()
+        private set
+    var onCloseFunc: ((PaginatedDynamicGUI<S>) -> Unit)? = null
+        private set
 
     /**
      * Constructs a `PaginatedDynamicGUI` instance by delegating the given `enumKClass` and `player`
@@ -137,16 +85,33 @@ class PaginatedDynamicGUI<S : Enum<S>>(
             PaginatedDynamicGUI(S::class.java, player)
     }
 
+    /**
+     * Sets the providers for fixed buttons associated with each state.
+     *
+     * These buttons will always be displayed regardless of pagination.
+     * You can use this to show static UI elements (like category headers or filters).
+     *
+     * @param providers A map from each state to a lambda that returns a list of fixed buttons.
+     * @return The current instance of [PaginatedDynamicGUI] for method chaining.
+     */
     fun setStateFixedButtonProviders(providers: Map<S, (S) -> List<Button>>): PaginatedDynamicGUI<S> {
         stateFixedButtonProviders.putAll(providers)
         return this
     }
 
+    /**
+     * Specifies which states should use pagination.
+     *
+     * If a state is not included in this set, pagination will be disabled for that state,
+     * and all items will be shown without page navigation.
+     *
+     * @param states The set of enum states that should use pagination.
+     * @return The current instance of [PaginatedDynamicGUI] for method chaining.
+     */
     fun setPaginationEnabledStates(states: Set<S>): PaginatedDynamicGUI<S> {
         this.paginationEnabledStates = states
         return this
     }
-
 
     /**
      * Sets the button provider function for generating buttons based on the current state.
@@ -273,6 +238,21 @@ class PaginatedDynamicGUI<S : Enum<S>>(
     }
 
     /**
+     * Sets a handler to be called when this GUI is closed.
+     *
+     * This callback will be triggered on GUI close events, allowing you to perform
+     * any necessary cleanup or state updates.
+     *
+     * @param block The lambda to execute when the GUI is closed.
+     *              The instance of [PaginatedDynamicGUI] will be passed as the receiver.
+     * @return The current instance of [PaginatedDynamicGUI] for method chaining.
+     */
+    fun onClose(block: (PaginatedDynamicGUI<S>) -> Unit): PaginatedDynamicGUI<S> {
+        this.onCloseFunc = block
+        return this
+    }
+
+    /**
      * Switches the current state of the GUI to the specified state.
      * If the given state is different from the current state, it updates the state,
      * resets the current page to the first page (index 0), and updates the display.
@@ -302,21 +282,6 @@ class PaginatedDynamicGUI<S : Enum<S>>(
         currentPage = page
         display()
     }
-
-    /**
-     * Navigates to the next page in the paginated GUI.
-     * This function increments the current page index by one
-     * and updates the GUI to display the next set of items.
-     */
-    fun nextPage() = switchPage(currentPage + 1)
-    /**
-     * Navigates to the previous page in the paginated GUI.
-     *
-     * Updates the current page number to one less than the current value
-     * and triggers a refresh of the GUI display to reflect the change.
-     *
-     */
-    fun prevPage() = switchPage(currentPage - 1)
 
     /**
      * Updates and renders the inventory GUI based on the current state, page, and associated mappings.
@@ -361,4 +326,7 @@ class PaginatedDynamicGUI<S : Enum<S>>(
         }
 
     }
+
+    fun nextPage() = switchPage(currentPage + 1)
+    fun prevPage() = switchPage(currentPage - 1)
 }

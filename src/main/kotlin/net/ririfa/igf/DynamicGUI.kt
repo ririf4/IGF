@@ -35,8 +35,12 @@ class DynamicGUI<S : Enum<S>>(
 			DynamicGUI(SinglePage::class, player)
 	}
 
-	private var currentState: S? = null
-	private var buttonMappings: Map<S, List<Button>> = emptyMap()
+	var currentState: S? = null
+		private set
+	var buttonMappings: Map<S, List<Button>> = emptyMap()
+		private set
+	var onCloseFunc: ((DynamicGUI<S>) -> Unit)? = null
+		private set
 
 	constructor(enumKClass: KClass<S>, player: Player): this(enumKClass.java, player)
 
@@ -68,6 +72,20 @@ class DynamicGUI<S : Enum<S>>(
 		}
 	}
 
+	/**
+	 * Sets a handler to be called when this GUI is closed.
+	 *
+	 * This callback will be triggered on GUI close events, allowing you to perform
+	 * any necessary cleanup or state updates.
+	 *
+	 * @param block The lambda to execute when the GUI is closed.
+	 *              The instance of [DynamicGUI] will be passed as the receiver.
+	 * @return The current instance of [DynamicGUI] for method chaining.
+	 */
+	fun onClose(block: (DynamicGUI<S>) -> Unit): DynamicGUI<S> {
+		onCloseFunc = block
+		return this
+	}
 
 	/**
 	 * Sets the current state of the DynamicGUI to the specified initial state.

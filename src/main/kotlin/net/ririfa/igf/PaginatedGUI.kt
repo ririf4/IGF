@@ -15,15 +15,24 @@ import org.bukkit.entity.Player
 class PaginatedGUI(
     player: Player
 ) : InventoryGUI(player) {
-    private var currentPage = 0
-    private var itemsPerPage = 9
-    private var totalPages = 1
-    private var slotPositions: List<Int> = emptyList()
-    private var emptyMessageButton: Button? = null
-    private var pageItems: List<Button> = emptyList()
-
-    private var prevPageButton: Button? = null
-    private var nextPageButton: Button? = null
+    var currentPage = 0
+        private set
+    var itemsPerPage = 9
+        private set
+    var totalPages = 1
+        private set
+    var slotPositions: List<Int> = emptyList()
+        private set
+    var emptyMessageButton: Button? = null
+        private set
+    var pageItems: List<Button> = emptyList()
+        private set
+    var prevPageButton: Button? = null
+        private set
+    var nextPageButton: Button? = null
+        private set
+    var onCloseFunc: ((PaginatedGUI) -> Unit)? = null
+        private set
 
     override fun build(): PaginatedGUI {
         create()
@@ -46,6 +55,10 @@ class PaginatedGUI(
         }
     }
 
+    fun onClose(block: (PaginatedGUI) -> Unit): PaginatedGUI {
+        onCloseFunc = block
+        return this
+    }
 
     /**
      * Sets the slot positions for items.

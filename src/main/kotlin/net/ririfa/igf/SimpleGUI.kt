@@ -15,6 +15,8 @@ import org.bukkit.entity.Player
 class SimpleGUI(
     player: Player
 ) : InventoryGUI(player) {
+    var onCloseFunc: (SimpleGUI) -> Unit = {}
+
     override fun build(): InventoryGUI {
         create()
         applyBackground()
@@ -24,4 +26,9 @@ class SimpleGUI(
 
     // SimpleGUI doesn't have original item holder
     override fun getAllButtons(): List<Button> = items
+
+    fun onClose(block: (SimpleGUI) -> Unit): SimpleGUI {
+        this.onCloseFunc = block
+        return this
+    }
 }
