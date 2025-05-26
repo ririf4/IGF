@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.ririfa"
-version = "1.5.6"
+version = "2.0.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -65,7 +65,7 @@ publishing {
 
             pom {
                 name.set("IGF")
-                description.set("Minecraft Paper Plugin makes it easy to build InventoryGUI PAI")
+                description.set("A Minecraft Paper plugin that simplifies Inventory GUI creation.")
                 url.set("https://github.com/ririf4/IGF")
                 licenses {
                     license {

@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
 object IGF : Listener {
     val logger: Logger = LoggerFactory.getLogger(IGF::class.java.simpleName)
     lateinit var ID: String
-    private var globalListener: GUIListener = NoOpListener
+    internal lateinit var plugin: JavaPlugin
 
     /**
      * Initializes the IGF with the given plugin and registers the events.
@@ -29,6 +29,7 @@ object IGF : Listener {
      */
     fun init(plugin: JavaPlugin, nameSpace: String) {
         ID = nameSpace
+        this.plugin = plugin
         plugin.server.pluginManager.registerEvents(this, plugin)
     }
 
@@ -49,15 +50,6 @@ object IGF : Listener {
     }
 
     /**
-     * Sets the global listener for all GUIs managed by IGF.
-     *
-     * @param listener The [GUIListener] to be used globally.
-     */
-    fun setGlobalListener(listener: GUIListener) {
-        globalListener = listener
-    }
-
-    /**
      * Handles inventory click events.
      * Cancels clicks on the background material by default and delegates to the appropriate listener.
      */
@@ -73,10 +65,7 @@ object IGF : Listener {
             (event.whoClicked as? Player)?.let { player ->
                 onClick(player, holder)
             }
-            if (button.skipGUIListenerCall) return
         }
-
-        holder.getListener()?.onInventoryClick(event, holder) ?: globalListener.onInventoryClick(event, holder)
     }
 
     /**
@@ -87,13 +76,28 @@ object IGF : Listener {
     fun onInventoryClose(event: InventoryCloseEvent) {
         val holder = event.inventory.holder
 
-        // Check if the closed inventory holder is of type InventoryGUI
         if (holder !is InventoryGUI) return
 
-        // Delegate the event to the local or global listener
-        holder.getListener()?.onInventoryClose(event, holder) ?: globalListener.onInventoryClose(event, holder)
-        if (holder.shouldCallGlobalListener()) {
-            globalListener.onInventoryClose(event, holder)
+        when (holder) {
+            is PaginatedDynamicGUI<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                (holder as PaginatedDynamicGUI<Enum<*>>).onCloseFunc?.invoke(holder, event.reason)
+            }
+
+            is SimpleGUI -> {
+                holder.onCloseFunc?.invoke(holder, event.reason)
+            }
+
+            is PaginatedGUI -> {
+                holder.onCloseFunc?.invoke(holder, event.reason)
+            }
+
+            is DynamicGUI<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                (holder as DynamicGUI<Enum<*>>).onCloseFunc?.invoke(holder, event.reason)
+            }
+
+            else -> return
         }
     }
 
@@ -105,23 +109,32 @@ object IGF : Listener {
     fun onInventoryOpen(event: InventoryOpenEvent) {
         val holder = event.inventory.holder
 
-        // Check if the opened inventory holder is of type InventoryGUI
         if (holder !is InventoryGUI) return
 
-        // Delegate the event to the local or global listener
-        holder.getListener()?.onInventoryOpen(event, holder) ?: globalListener.onInventoryOpen(event, holder)
-        if (holder.shouldCallGlobalListener()) {
-            globalListener.onInventoryOpen(event, holder)
+        when (holder) {
+            is PaginatedDynamicGUI<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                (holder as PaginatedDynamicGUI<Enum<*>>).onOpenFunc?.invoke(holder)
+            }
+
+            is SimpleGUI -> {
+                holder.onOpenFunc?.invoke(holder)
+            }
+
+            is PaginatedGUI -> {
+                holder.onOpenFunc?.invoke(holder)
+            }
+
+            is DynamicGUI<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                (holder as DynamicGUI<Enum<*>>).onOpenFunc?.invoke(holder)
+            }
+
+            else -> return
         }
     }
 
-    /**
-     * A no-operation listener to handle cases when the global listener is not set.
-     * This prevents null checks and provides a safe default.
-     */
-    private object NoOpListener : GUIListener {
-        override fun onInventoryClick(event: InventoryClickEvent, gui: InventoryGUI) {}
-        override fun onInventoryClose(event: InventoryCloseEvent, gui: InventoryGUI) {}
-        override fun onInventoryOpen(event: InventoryOpenEvent, gui: InventoryGUI) {}
+    internal fun runTask(block: () -> Unit) {
+        plugin.server.scheduler.runTask(plugin, block)
     }
 }

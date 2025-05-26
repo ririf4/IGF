@@ -77,8 +77,6 @@ data class DataWrapper<P : Any, C : Any>(
  *                The keys are namespaced keys, and the values are wrapped in a data wrapper.
  * @property onClick An optional lambda function executed when the button is clicked.
  *                   The function takes the [Player] who clicked the button as a parameter.
- * @property skipGUIListenerCall A flag indicating whether to skip further GUI listener calls
- *                                after this button is clicked.
  * @since 1.1.0
  * @author RiriFa
  */
@@ -87,8 +85,7 @@ data class Button @JvmOverloads constructor(
     val material: Material,
     val name: Component,
     val data: Map<NamespacedKey, DataWrapper<out Any, out Any>> = emptyMap(),
-    var onClick: ClickEvent? = null,
-    val skipGUIListenerCall: Boolean = true
+    var onClick: ClickEvent? = null
 ) {
     /**
      * Converts the button's material, display name, and custom data into an ItemStack.

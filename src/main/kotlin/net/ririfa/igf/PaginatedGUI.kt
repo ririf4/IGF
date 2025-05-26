@@ -1,6 +1,7 @@
 package net.ririfa.igf
 
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryCloseEvent
 
 /**
  * A class that provides paginated inventory GUI functionality with improved item management.
@@ -31,7 +32,9 @@ class PaginatedGUI(
         private set
     var nextPageButton: Button? = null
         private set
-    var onCloseFunc: ((PaginatedGUI) -> Unit)? = null
+    var onCloseFunc: ((PaginatedGUI, InventoryCloseEvent.Reason) -> Unit)? = null
+        private set
+    var onOpenFunc: ((PaginatedGUI) -> Unit)? = null
         private set
 
     override fun build(): PaginatedGUI {
@@ -55,8 +58,13 @@ class PaginatedGUI(
         }
     }
 
-    fun onClose(block: (PaginatedGUI) -> Unit): PaginatedGUI {
+    fun onClose(block: (PaginatedGUI, InventoryCloseEvent.Reason) -> Unit): PaginatedGUI {
         onCloseFunc = block
+        return this
+    }
+
+    fun onOpen(block: (PaginatedGUI) -> Unit): PaginatedGUI {
+        onOpenFunc = block
         return this
     }
 

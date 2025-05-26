@@ -1,6 +1,7 @@
 package net.ririfa.igf
 
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryCloseEvent
 import kotlin.reflect.KClass
 
 /**
@@ -39,7 +40,9 @@ class DynamicGUI<S : Enum<S>>(
 		private set
 	var buttonMappings: Map<S, List<Button>> = emptyMap()
 		private set
-	var onCloseFunc: ((DynamicGUI<S>) -> Unit)? = null
+	var onCloseFunc: ((DynamicGUI<S>, InventoryCloseEvent.Reason) -> Unit)? = null
+		private set
+	var onOpenFunc: ((DynamicGUI<S>) -> Unit)? = null
 		private set
 
 	constructor(enumKClass: KClass<S>, player: Player): this(enumKClass.java, player)
@@ -82,8 +85,13 @@ class DynamicGUI<S : Enum<S>>(
 	 *              The instance of [DynamicGUI] will be passed as the receiver.
 	 * @return The current instance of [DynamicGUI] for method chaining.
 	 */
-	fun onClose(block: (DynamicGUI<S>) -> Unit): DynamicGUI<S> {
+	fun onClose(block: (DynamicGUI<S>, InventoryCloseEvent.Reason) -> Unit): DynamicGUI<S> {
 		onCloseFunc = block
+		return this
+	}
+
+	fun onOpen(block: (DynamicGUI<S>) -> Unit): DynamicGUI<S> {
+		onOpenFunc = block
 		return this
 	}
 

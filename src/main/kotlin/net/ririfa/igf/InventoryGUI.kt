@@ -21,11 +21,9 @@ abstract class InventoryGUI(
     protected val player: Player
 ) : InventoryHolder {
     private var igfInventory: Inventory? = null
-    private var listener: GUIListener? = null
     private var title: Component? = null
     private var size: Int? = null
     private var background: Material? = null
-    private var shouldCallGlobalListener = false
 
     /**
      * Represents the list of buttons to be displayed in this inventory GUI.
@@ -87,30 +85,6 @@ abstract class InventoryGUI(
         @JvmStatic
         fun getItems(gui: InventoryGUI): List<Button> {
             return gui.items
-        }
-
-        /**
-         * Returns the listener set in a given [InventoryGUI] instance.
-         * This method can be called statically from outside the class.
-         *
-         * @param gui The [InventoryGUI] instance to get the listener from.
-         * @return The [GUIListener] instance, or null if not set.
-         */
-        @JvmStatic
-        fun getListener(gui: InventoryGUI): GUIListener? {
-            return gui.listener
-        }
-
-        /**
-         * Indicates whether the global listener should be called on inventory events for a given [InventoryGUI] instance.
-         * This method can be called statically from outside the class.
-         *
-         * @param gui The [InventoryGUI] instance to check.
-         * @return True if the global listener should be called, false otherwise.
-         */
-        @JvmStatic
-        fun getShouldCallGlobalListener(gui: InventoryGUI): Boolean {
-            return gui.shouldCallGlobalListener
         }
     }
 
@@ -232,43 +206,6 @@ abstract class InventoryGUI(
     }
 
     /**
-     * Sets the listener for handling GUI events.
-     * @param listener The [GUIListener] instance to handle events.
-     * @return The current [InventoryGUI] instance for chaining.
-     */
-    @Deprecated("Use button's 'onClick' property instead.")
-    fun setListener(listener: GUIListener): InventoryGUI {
-        this.listener = listener
-        return this
-    }
-
-    /**
-     * Gets the current listener associated with this GUI.
-     * @return The [GUIListener] instance, or null if not set.
-     */
-    fun getListener(): GUIListener? {
-        return this.listener
-    }
-
-    /**
-     * Indicates whether the global listener should be called on inventory events.
-     * @return True if the global listener should be called, false otherwise.
-     */
-    fun shouldCallGlobalListener(): Boolean {
-        return this.shouldCallGlobalListener
-    }
-
-    /**
-     * Sets whether the global listener should be called on inventory events.
-     * @param shouldCallGlobalListener True to call the global listener, false otherwise.
-     * @return The current [InventoryGUI] instance for chaining.
-     */
-    fun setShouldCallGlobalListener(shouldCallGlobalListener: Boolean): InventoryGUI {
-        this.shouldCallGlobalListener = shouldCallGlobalListener
-        return this
-    }
-
-    /**
      * Sets the title of the inventory GUI.
      * @param title The [Component] representing the title.
      * @return The current [InventoryGUI] instance for chaining.
@@ -296,7 +233,9 @@ abstract class InventoryGUI(
         if (igfInventory == null) {
             throw IllegalStateException("Inventory not set")
         }
-        player.openInventory(igfInventory!!)
+        IGF.runTask {
+            player.openInventory(igfInventory!!)
+        }
     }
 
     /**

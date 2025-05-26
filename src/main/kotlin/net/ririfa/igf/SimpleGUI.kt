@@ -1,6 +1,7 @@
 package net.ririfa.igf
 
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryCloseEvent
 
 /**
  * A simple GUI class that provides basic inventory GUI functionality.
@@ -15,7 +16,10 @@ import org.bukkit.entity.Player
 class SimpleGUI(
     player: Player
 ) : InventoryGUI(player) {
-    var onCloseFunc: (SimpleGUI) -> Unit = {}
+    var onCloseFunc: ((SimpleGUI, InventoryCloseEvent.Reason) -> Unit)? = null
+        private set
+    var onOpenFunc: ((SimpleGUI) -> Unit)? = null
+        private set
 
     override fun build(): InventoryGUI {
         create()
@@ -27,8 +31,13 @@ class SimpleGUI(
     // SimpleGUI doesn't have original item holder
     override fun getAllButtons(): List<Button> = items
 
-    fun onClose(block: (SimpleGUI) -> Unit): SimpleGUI {
+    fun onClose(block: (SimpleGUI, InventoryCloseEvent.Reason) -> Unit): SimpleGUI {
         this.onCloseFunc = block
+        return this
+    }
+
+    fun onOpen(block: (SimpleGUI) -> Unit): SimpleGUI {
+        onOpenFunc = block
         return this
     }
 }

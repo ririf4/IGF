@@ -1,6 +1,7 @@
 package net.ririfa.igf
 
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.jetbrains.annotations.ApiStatus
 import kotlin.reflect.KClass
 
@@ -39,7 +40,9 @@ class PaginatedDynamicGUI<S : Enum<S>>(
         private set
     var paginationEnabledStates: Set<S> = enumClass.enumConstants.toSet()
         private set
-    var onCloseFunc: ((PaginatedDynamicGUI<S>) -> Unit)? = null
+    var onCloseFunc: ((PaginatedDynamicGUI<S>, InventoryCloseEvent.Reason) -> Unit)? = null
+        private set
+    var onOpenFunc: ((PaginatedDynamicGUI<S>) -> Unit)? = null
         private set
 
     /**
@@ -247,8 +250,13 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      *              The instance of [PaginatedDynamicGUI] will be passed as the receiver.
      * @return The current instance of [PaginatedDynamicGUI] for method chaining.
      */
-    fun onClose(block: (PaginatedDynamicGUI<S>) -> Unit): PaginatedDynamicGUI<S> {
+    fun onClose(block: (PaginatedDynamicGUI<S>, InventoryCloseEvent.Reason) -> Unit): PaginatedDynamicGUI<S> {
         this.onCloseFunc = block
+        return this
+    }
+
+    fun onOpen(block: (PaginatedDynamicGUI<S>) -> Unit): PaginatedDynamicGUI<S> {
+        this.onOpenFunc = block
         return this
     }
 
