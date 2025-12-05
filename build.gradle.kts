@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.ririfa"
-version = "2.0.0+mc.1.21.10"
+version = "2.0.1+mc.1.21.10"
 
 repositories {
     mavenCentral()

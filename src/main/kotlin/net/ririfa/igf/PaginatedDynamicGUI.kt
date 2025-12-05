@@ -221,6 +221,14 @@ class PaginatedDynamicGUI<S : Enum<S>>(
      */
     override fun build(): InventoryGUI {
         create()
+
+        currentState?.let { state ->
+            statePageItemProvider?.let { provider ->
+                val items = provider(state)
+                setPageItems(items)
+            }
+        }
+
         display()
         return this
     }
