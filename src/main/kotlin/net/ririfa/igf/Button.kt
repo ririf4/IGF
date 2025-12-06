@@ -83,7 +83,7 @@ data class DataWrapper<P : Any, C : Any>(
 data class Button @JvmOverloads constructor(
     val slot: Int,
     val material: Material,
-    val name: Component,
+    val name: Component = Component.empty(),
     val data: Map<NamespacedKey, DataWrapper<out Any, out Any>> = emptyMap(),
     var onClick: ClickEvent? = null
 ) {
